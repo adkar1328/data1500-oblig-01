@@ -1,10 +1,10 @@
 # Besvarelse - Refleksjon og Analyse
 
-**Student:** [Ditt navn]
+**Student:** [Adem]
 
-**Studentnummer:** [Ditt studentnummer]
+**Studentnummer:** [1328]
 
-**Dato:** [Innleveringsdato]
+**Dato:** [1.03.2026]
 
 ---
 
@@ -15,10 +15,54 @@
 **Identifiserte entiteter:**
 
 [Skriv ditt svar her - list opp alle entitetene du har identifisert]
+Bruker – Begrunnelse-
+Systemet må holde oversikt over hvem som låner sykler. 
+Bruker må kunne identifiseres og kontaktes ved problemer eller betaling.
+Derfor lagres navn og kontaktinformasjon,
+og bruker-ID brukes for å skille brukere fra hverandre.
+
+Sykkel – Begrunnelse-
+Hver sykkel må kunne identifiseres individuelt i systemet.
+Systemet må vite hvilke sykler som er tilgjengelige,
+i bruk eller til reparasjon.
+Status og serienummer gjør det mulig å spore og administrere syklene.
+
+Stasjon – Begrunnelse-
+Syklene hentes og leveres på ulike stasjoner.
+Systemet må vite hvor stasjonene er og hvor mange sykler det er plass til.
+Derfor lagres navn, adresse og kapasitet.
+
+Leie – Begrunnelse-
+Når en bruker låner en sykkel må turen registreres.
+Dette brukes til historikk, oversikt og grunnlag for betaling.
+Derfor lagres tidspunkt, bruker, sykkel og start- og sluttstasjon.
+
+Betaling – Begrunnelse-
+Systemet må registrere betaling for bruk av syklene.
+Dette er nødvendig for økonomisk kontroll og dokumentasjon.
+Betalingen kobles til en konkret leietur.
+
+
+
+
 
 **Attributter for hver entitet:**
 
 [Skriv ditt svar her - list opp attributtene for hver entitet]
+Brukere-
+Bruker-id, navn, telefonnummer, epost, regissteringsdato.
+
+sykkel-
+Sykkel-id, serienummer, status, type, innkjøpsdato.
+
+statsjon-
+Stasjon-id, navn, adresse, antall plasser, kapasitet.
+
+leie-
+Leie-id, starttid, sluttid, bruker-id, sykkel-id, startstasjon, sluttstatjon.
+
+Betaling-
+Betaling-id, beløp, betallingstidpunkt, betalingsmetode, leie-id.
 
 ---
 
@@ -27,14 +71,106 @@
 **Valgte datatyper og begrunnelser:**
 
 [Skriv ditt svar her - forklar hvilke datatyper du har valgt for hver attributt og hvorfor]
+Bruker-
+Bruker-id-INT(brukes som unik identifikator for hver bruker og er derfor et heltall.)
+Navn-VARCHAR(navn er tekst og kan variere i lengde.)
+Telefonnummer-VARCHAR((+47) og ikke brukes i regning.)
+Epost-VARCHAR(e-post er tekst med bokstaver og spesialtegn.)
+Registeringsdato-DATE(vi trenger kun dato for når brukeren ble registrert, ikke klokkeslett.)
+
+SYKKEL-
+Sykkel-id-INT(unik identifikator for hver sykkel.)
+Serienummer-VARCHAR(serienummer kan inneholde både tall og bokstaver.)
+Status-VARCHAR(sykkelens tilstand beskrives med tekst (f.eks. ledig, i bruk, reparasjon).)
+Type-VARCHAR(sykkeltype er tekst (for eksempel elsykkel eller vanlig sykkel).)
+Innkjøpsdato-DATE(datoen sykkelen ble kjøpt inn.)
+
+Stasjon-
+Statsjons-id-INT(unik identifikator for hver stasjon.)
+Navn-VARCHAR(stasjonsnavn er tekst.)
+Adresse-VARCHAR(Adresse inneholder tekst og tall.)
+Kapasitet-INT(kapasitet er et antall plasser og må derfor være et heltall.)
+
+Leie-
+Leie-id-INT(identifiserer hver leietur.)
+Startid-TIMESTAMP(registrerer både dato og klokkeslett når turen starter.)
+slutttid-TIMESTAMP(registrerer dato og klokkeslett når turen avsluttes.)
+Bruker-id-INT(refererer til hvilken bruker som lånte sykkelen.)
+Sykkel-id-INT(Refererer til hvilken sykkel som ble brukt.)
+Startastasjon-INT(peker til stasjonen turen startet fra.)
+sluttstasjon-INT(peker til stasjonen turen endte på.)
+
+Betaling-
+Betaling-id-INT(unik identifikator for betalingen.)
+Beløp-DECIMAL(penger kan inneholde desimaler (for eksempel 29.90 kr).)
+betalingstidpunkt-TIMESTAMP(registrerer nøyaktig tidspunkt for betaling.)
+Betalingsmetode-VARCHAR(tekst som beskriver metode (kort, vipps osv.).)
+leie-id-INT(kobler betalingen til en bestemt leietur.)
+
+
 
 **`CHECK`-constraints:**
 
 [Skriv ditt svar her - list opp alle CHECK-constraints du har lagt til og forklar hvorfor de er nødvendige]
+kapasitet > 0 (en stasjon må ha minst én plass)
+
+beløp > 0 (betaling kan ikke være negativ)
+
+sluttid > starttid (en tur kan ikke slutte før den starter)
+
+status IN ('ledig','i bruk','reparasjon') (bare gyldige sykkelstatuser)
 
 **ER-diagram:**
 
 [Legg inn mermaid-kode eller eventuelt en bildefil fra `mermaid.live` her]
+erDiagram
+
+    BRUKER ||--o{ LEIE : gjør
+    SYKKEL ||--o{ LEIE : brukes_i
+    STASJON ||--o{ LEIE : start
+    STASJON ||--o{ LEIE : slutt
+    LEIE ||--|| BETALING : betales_med
+
+    BRUKER {
+        INT bruker_id
+        VARCHAR navn
+        VARCHAR telefonnummer
+        VARCHAR epost
+        DATE registreringsdato
+    }
+
+    SYKKEL {
+        INT sykkel_id
+        VARCHAR serienummer
+        VARCHAR status
+        VARCHAR type
+        DATE innkjøpsdato
+    }
+
+    STASJON {
+        INT stasjon_id
+        VARCHAR navn
+        VARCHAR adresse
+        INT kapasitet
+    }
+
+    LEIE {
+        INT leie_id
+        TIMESTAMP starttid
+        TIMESTAMP sluttid
+        INT bruker_id
+        INT sykkel_id
+        INT startstasjon
+        INT sluttstasjon
+    }
+
+    BETALING {
+        INT betaling_id
+        DECIMAL beløp
+        TIMESTAMP betalingstidspunkt
+        VARCHAR betalingsmetode
+        INT leie_id
+    }
 
 ---
 
