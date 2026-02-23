@@ -177,14 +177,90 @@ erDiagram
 ### Oppgave 1.3: Primærnøkler
 
 **Valgte primærnøkler og begrunnelser:**
+Bruker:
+Primærnøkkel: bruker_id
+Begrunnelse:Hver bruker må identifiseres unikt i systemet.
+Flere brukere kan ha samme navn eller telefonnummer, 
+derfor brukes en egen ID for å skille dem.
+
+Sykkel:
+Primærnøkkel: sykkel_id
+Begrunnelse:Hver sykkel må kunne identifiseres individuelt.
+Serienummer kan endres eller registreres feil, derfor brukes en unik ID.
+
+Stasjon:
+Primærnøkkel: stasjon_id
+Begrunnelse: Flere stasjoner kan ha like navn eller ligge i samme område. 
+En egen ID gjør det mulig å referere til riktig stasjon i databasen.
+
+Leie:
+Primærnøkkel: leie_id
+Begrunnelse: Hver leietur må kunne identifiseres separat for historikk og betaling.
+Tidspunkt alene er ikke nok siden flere turer kan starte samtidig.
+
+Betaling:
+Primærnøkkel: betaling_id
+Begrunnelse: Hver betaling må lagres som en egen registrering 
+for økonomisk kontroll og kobles til riktig leietur.
 
 [Skriv ditt svar her - forklar hvilke primærnøkler du har valgt for hver entitet og hvorfor]
 
 **Naturlige vs. surrogatnøkler:**
+Dette er valgt fordi naturlige verdier kan endres.
+En bruker kan for eksempel bytte telefonnummer eller e-post.
+Hvis dette var primærnøkkel ville det skapt problemer i databasen.
+En kunstig ID forblir stabil og gjør koblinger mellom tabeller enklere.
 
 [Skriv ditt svar her - diskuter om du har brukt naturlige eller surrogatnøkler og hvorfor]
 
 **Oppdatert ER-diagram:**
+BRUKER ||--o{ LEIE : gjør
+SYKKEL ||--o{ LEIE : brukes_i
+STASJON ||--o{ LEIE : start
+STASJON ||--o{ LEIE : slutt
+LEIE ||--|| BETALING : betales_med
+
+    BRUKER {
+        INT bruker_id
+        VARCHAR navn
+        VARCHAR telefonnummer
+        VARCHAR epost
+        DATE registreringsdato
+    }
+
+    SYKKEL {
+        INT sykkel_id
+        VARCHAR serienummer
+        VARCHAR status
+        VARCHAR type
+        DATE innkjøpsdato
+    }
+
+    STASJON {
+        INT stasjon_id
+        VARCHAR navn
+        VARCHAR adresse
+        INT kapasitet
+    }
+
+    LEIE {
+        INT leie_id
+        TIMESTAMP starttid
+        TIMESTAMP sluttid
+        INT bruker_id
+        INT sykkel_id
+        INT startstasjon
+        INT sluttstasjon
+    }
+
+    BETALING {
+        INT betaling_id
+        DECIMAL beløp
+        TIMESTAMP betalingstidspunkt
+        VARCHAR betalingsmetode
+        INT leie_id
+    }
+
 
 [Legg inn mermaid-kode eller eventuelt en bildefil fra `mermaid.live` her]
 
@@ -193,14 +269,81 @@ erDiagram
 ### Oppgave 1.4: Forhold og fremmednøkler
 
 **Identifiserte forhold og kardinalitet:**
+Bruker – Leie (1 til mange)
+En bruker kan gjennomføre flere leieturer, men en leietur tilhører kun én bruker.
 
+Sykkel – Leie (1 til mange)
+En sykkel kan brukes i mange leieturer over tid, men en leietur gjelder kun én sykkel.
+
+Stasjon – Leie (1 til mange)
+En stasjon kan være start- eller sluttpunkt for mange leieturer, men hver leietur har bare én startstasjon og én sluttstasjon.
+
+Leie – Betaling (1 til 1)
+Hver leietur har én betaling, og hver betaling hører til én spesifikk leietur.
 [Skriv ditt svar her - list opp alle forholdene mellom entitetene og angi kardinalitet]
 
 **Fremmednøkler:**
+leie.bruker_id → refererer til bruker.bruker_id
+(viser hvilken bruker som lånte sykkelen)
+
+leie.sykkel_id → refererer til sykkel.sykkel_id
+(viser hvilken sykkel som ble brukt)
+
+leie.startstasjon → refererer til stasjon.stasjon_id
+(viser hvor turen startet)
+
+leie.sluttstasjon → refererer til stasjon.stasjon_id
+(viser hvor turen endte)
+
+betaling.leie_id → refererer til leie.leie_id
+(kobler betaling til riktig leietur)
 
 [Skriv ditt svar her - list opp alle fremmednøklene og forklar hvordan de implementerer forholdene]
 
 **Oppdatert ER-diagram:**
+BRUKER {
+INT bruker_id
+VARCHAR navn
+VARCHAR telefonnummer
+VARCHAR epost
+DATE registreringsdato
+}
+
+    SYKKEL {
+        INT sykkel_id
+        VARCHAR serienummer
+        VARCHAR status
+        VARCHAR type
+        DATE innkjøpsdato
+    }
+
+    STASJON {
+        INT stasjon_id
+        VARCHAR navn
+        VARCHAR adresse
+        INT kapasitet
+    }
+
+    LEIE {
+        INT leie_id
+        TIMESTAMP starttid
+        TIMESTAMP sluttid
+        INT bruker_id
+        INT sykkel_id
+        INT startstasjon
+        INT sluttstasjon
+    }
+
+    BETALING {
+        INT betaling_id
+        DECIMAL beløp
+        TIMESTAMP betalingstidspunkt
+        VARCHAR betalingsmetode
+        INT leie_id
+    }
+
+
+
 
 [Legg inn mermaid-kode eller eventuelt en bildefil fra `mermaid.live` her]
 
@@ -209,18 +352,37 @@ erDiagram
 ### Oppgave 1.5: Normalisering
 
 **Vurdering av 1. normalform (1NF):**
+Datamodellen tilfredsstiller 1NF fordi alle tabeller har en primærnøkkel 
+og hvert felt inneholder kun én verdi.
+Det finnes ingen kolonner som lagrer flere verdier samtidig,
+og alle attributter er atomiske.
+For eksempel lagres ett telefonnummer per bruker og
+én start- og sluttstasjon per leietur.
 
 [Skriv ditt svar her - forklar om datamodellen din tilfredsstiller 1NF og hvorfor]
 
 **Vurdering av 2. normalform (2NF):**
+Datamodellen tilfredsstiller 2NF fordi alle ikke-nøkkelattributter er fullt avhengige 
+av primærnøkkelen. Hver tabell bruker en enkel primærnøkkel (*_id), 
+og informasjonen i tabellen beskriver kun den aktuelle entiteten.
+For eksempel ligger brukerens navn og e-post kun i brukertabellen og ikke i 
+leietabellen.
 
 [Skriv ditt svar her - forklar om datamodellen din tilfredsstiller 2NF og hvorfor]
 
 **Vurdering av 3. normalform (3NF):**
+Datamodellen tilfredsstiller 3NF fordi det ikke finnes transitive avhengigheter. 
+Informasjon lagres bare ett sted i databasen. 
+Stasjonsinformasjon lagres i stasjonstabellen, brukerdata i brukertabellen og 
+betalingsdata i betalingstabellen. Leietabellen inneholder bare referanser til
+disse via fremmednøkler og lagrer ikke duplisert informasjon.
 
 [Skriv ditt svar her - forklar om datamodellen din tilfredsstiller 3NF og hvorfor]
 
 **Eventuelle justeringer:**
+Det var ikke nødvendig med større justeringer fordi modellen allerede oppfylte kravene 
+til 3NF. Informasjon som kunne blitt duplisert er plassert i egne tabeller,
+og relasjoner håndteres med fremmednøkler.
 
 [Skriv ditt svar her - hvis modellen ikke var på 3NF, forklar hvilke justeringer du har gjort]
 
